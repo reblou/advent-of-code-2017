@@ -12,7 +12,6 @@ if(@ARGV) {
         for my $line (@lines) {
             my @chars = split //, $line;
             my $prev = $chars[-2];
-            print "prev: ", $prev, "\n";
             for my $char (@chars) {
                 unless ($char eq "\n") {
                     if ($char eq $prev) {
@@ -24,6 +23,29 @@ if(@ARGV) {
         }
         print $sum, "\n";
     } elsif ($ARGV[0] == 2) {
+        open(my $file, "<", "day2input");
+        my @lines = <$file>;
 
+        for my $line (@lines) {
+            my @chars = split //, $line;
+            my $num_numbers = scalar(@chars) - 1;
+            my $step = $num_numbers / 2;
+
+            my $cmp_index;
+            for my $i (0 .. $num_numbers -1) {
+                $cmp_index = $i + $step;
+                if ($cmp_index > $num_numbers -1) {
+                    $cmp_index = $step - (($num_numbers-1) - $i) - 1;
+                    print "new cmp", $cmp_index, "\n";
+                }
+
+                if ($chars[$i] eq $chars[$cmp_index]) {
+
+                    print $chars[$i], "eq", $chars[$cmp_index], "\n";
+                    $sum += $chars[$i];
+                }
+            }
+        }
+        print "sum: ", $sum, "\n";
     }
 }
