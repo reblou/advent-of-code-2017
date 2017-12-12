@@ -34,6 +34,23 @@ if ($ARGV[0] == 1) {
     print "\n";
     $steps = distFromCoord(@sol);
 } elsif ($ARGV[0] == 2) {
+    my @ans = squares($input);
+
+    my $rings = @ans;
+    my $dimension = 2 * $rings - 1;
+    my @grid;
+
+    for my $i (0..$dimension) {
+        for my $n (0..$dimension) {
+            push $grid[$i], 0;
+        }
+    }
+
+    foreach (@grid) {
+        print "$_\n";
+    }
+
+
 }
 
 print "steps: " . $steps . "\n";
