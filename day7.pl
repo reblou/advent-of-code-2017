@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Data::Dumper;
+use List::Util qw (min max);
 
 use FindBin;
 use lib $FindBin::Bin;
@@ -54,7 +55,7 @@ if ($ARGV[0] == 1) {
         #print "c: '@children'\n";
         my @a;
         foreach (@children) {
-            print "adding $_ weight: $weights{$_} to $name\n";
+            #print "adding $_ weight: $weights{$_} to $name\n";
             #$child_node = Node->new( {name=>$_, value=>$weights{$_}});
             #$node->addChild($child_node);
             push @a, $_;
@@ -72,13 +73,14 @@ if ($ARGV[0] == 1) {
             $nodes{$key}->addChild($nodes{$_});
         }
 
-        print "--\n";
+        #print "--\n";
     }
 
     $nodes{getRoot()}->printTree(0);
     print "weight: " . $nodes{getRoot()}->getSubTreeWeight() . "\n";
     #print Dumper \($nodes{getRoot()});
 
+    getUnbalanced($nodes{getRoot()});
 }
 
 sub getWeights {
@@ -93,14 +95,79 @@ sub getWeights {
 }
 
 sub getUnbalanced {
-    #TODO: this stuff
+    #TODO: find the one node weight that needs to be changed
+    #TODO: and how much to change it by
     my $node = shift;
-    my $weight
+    my $unbalanced;
+    my $kids = $node->{children};
+    print "kids: @{$kids}\n";
+    my @kids = @{$kids};
+    my @kidvals;
 
-    for my $i (0 .. $#{$node->{children}}) {
-        $node->{children}[$i]->getSubTreeWeight();
+    print "root balanced: " . childrenBalanced($node) . "\n";
+
+    for my $i (0 .. $#kids) {
+        print "i: $i\n";
+        print "$kids[$i]->{name} :" . childrenBalanced($kids[$i]) . "\n";
+        unless (childrenBalanced($kids[$i])) {
+            return getUnbalanced($kids[$i]);
+        }
     }
 
+    getUnique(@kids)
+}
+
+sub getUnique {
+    my @nodes = @_;
+    my %namevals;
+    my %vals;
+    my $needschanging;
+
+    foreach (@nodes) {
+        print "$_->{name}\n";
+        $vals{$_->getSubTreeWeight()}++;
+        $namevals{$_->{name}} = $_->getSubTreeWeight;
+    }
+    print Dumper \%vals;
+    my $min;
+    my $minKey;
+    my $diff;
+
+    foreach my $key (keys %vals) {
+        unless ($min) {
+            $min = $vals{$key};
+            $minKey = $key;
+        } elsif ($vals{$key} < $min) {
+            $min = $vals{$key};
+            $minKey = $key;
+        } else {
+            $diff = $minKey - $key;
+        }
+    }
+
+    print "min val: $minKey: $min\n";
+
+    foreach my $key (keys %namevals) {
+        if ($namevals{$key} == $minKey) {
+            $needschanging = $key;
+            print "min name: $key, diff: $diff\n";
+            print "new value: " . ($weights{$key}-$diff) . "\n";
+        }
+    }
+}
+
+sub childrenBalanced {
+    my $node = shift;
+    my @kids = @{$node->{children}};
+
+    for my $i (0 .. $#kids-1) {
+        #print $kids[$i]->getSubTreeWeight() . "\n";
+        #print $kids[$i+1]->getSubTreeWeight() . "\n";
+        if ($kids[$i]->getSubTreeWeight() != $kids[$i+1]->getSubTreeWeight()) {
+            return 0;
+        }
+    }
+    return 1;
 }
 
 sub getRoot {
