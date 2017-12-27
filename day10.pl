@@ -40,6 +40,7 @@ sub toHexOutput {
     }
     print "length hex str: " . (length $str) . "\n";
     print "hex str: $str\n";
+    return $str;
 }
 
 # take array of integers and compress into XOR value of each 16 element segment
