@@ -28,52 +28,30 @@ if ($ARGV[0] == 1) {
         push @codes, @endSequence;
         my @a = nRounds(64, @codes);
         my @dense = densify(@a);
-        toHexOutput(@dense);
         my $bin = toBinary(@dense);
         $total += printRow($bin);
     }
 
     print "total squares: $total\n";
 } elsif ($ARGV[0] == 2) {
-    # get
     for my $i (0 .. 127) {
         my $str = $lines[0];
         $str =~ s/\s+$//g;
         $str .= "-" . $i;
-        #print "string: $str\n";
         my @codes = getASCIIcodes($str);
         my @endSequence = (17, 31, 73, 47, 23);
         push @codes, @endSequence;
         my @a = nRounds(64, @codes);
         my @dense = densify(@a);
-        toHexOutput(@dense);
         my $bin = toBinary(@dense);
-        #getRow($bin, $i);
-        #printRow($bin);
         print "filling grid\n";
         fillGrid($i, $bin);
     }
-    printGrid();
-    #print "groups: $groups\n";
-    #getNumGroups();
-    #printEx();
-    getRegions();
-
-} elsif ($ARGV[0] == 3) {
-    my @rows = ("11010100", "01010101", "00001010",
-    "10101101", "01101000", "11001001", "01000100", "11010110");
-    for my $i (0 .. $#rows) {
-        #getRow($rows[$i], $i);
-        #@{$grid[$i]} = $rows[$i];
-        fillGrid($i, $rows[$i]);
-    }
-    printGrid();
-    #print "groups: $groups\n";
-    #getNumGroups();
     getRegions();
 
 }
 
+# go through the grid removing all regions and count how many there were
 sub getRegions {
     my $regions = 0;
 
@@ -90,6 +68,7 @@ sub getRegions {
     print "regions: $regions\n";
 }
 
+# remove all connected squares to grid[n][i]
 sub removeRegion {
     my ($n, $i) = @_;
     unless ($grid[$n][$i]) {
@@ -105,6 +84,7 @@ sub removeRegion {
 
 }
 
+# add a binary string at row n of the grid
 sub fillGrid {
     my ($row, $str) = @_;
     my @arr = split //, $str;
@@ -113,114 +93,7 @@ sub fillGrid {
     }
 }
 
-sub getNumGroups {
-    my %nums;
-
-    foreach my $n (0 .. 7) {
-        foreach my $i (0 .. 7) {
-            $nums{$grid[$n][$i]} = 1;
-        }
-    }
-
-    my @k = keys %nums;
-    print "groups: @k\n";
-    print "number of different groups: ". (@k-1) . "\n";
-}
-
-sub printEx {
-    print "--\n";
-    for my $n (0 .. 7) {
-        print "|";
-        for my $i (0 .. 7) {
-            print $grid[$n][$i];
-        }
-        print "|\n";
-    }
-    print "--\n";
-}
-
-sub printGrid {
-    print "--";
-    for my $x (0 .. $#grid) {
-        print "\n|";
-        foreach my $y (0 .. $#{$grid[$x]}) {
-            if($grid[$x][$y]) {
-                print "#";
-            } else {
-                print ".";
-            }
-        }
-        print "|";
-    }
-    print "\n--\n";
-}
-
-sub getRow {
-    my ($binStr, $n) = @_;
-    my @a = split //, $binStr;
-    for my $i (0 .. $#a) {
-        if ($a[$i] eq "0") {
-            $grid[$n][$i] = ".";
-        } elsif ($a[$i] eq "1") {
-            #push @row, "#";
-            #getGroup($i, $n, @a);
-            if ($n > 0 && $grid[$n-1][$i] ne ".") {
-                my $back = 1;
-                #while ($i-$back >= 0 && $grid[$n][$i-$back] ne ".") {
-                    #pop @row;
-                    #push @row, $grid[$n][$i-1];
-                    #$grid[$n][$i-$back] = $grid[$n-1][$i];
-                    #$back++;
-                #}
-                #push @row, $grid[$n-1][$i];
-                $grid[$n][$i] = $grid[$n-1][$i];
-            } elsif ($i > 0 && $grid[$n][$i-1] ne ".") {
-                #push @row, $grid[$n][$i];
-                $grid[$n][$i] = $grid[$n][$i-1];
-            } else {
-                #push @row, $groups++;
-                $grid[$n][$i] = ++$groups;
-            }
-            backtrace($n, $i);
-        } else {
-            print "oh dear\n";
-            exit();
-        }
-    }
-}
-
-sub backtrace {
-    my ($n, $i) = @_;
-    if ($grid[$n][$i] eq ".") {
-        print "abort\n";
-        exit();
-    }
-    my $groupnum = $grid[$n][$i];
-    #print "backtracing for: $groupnum, at n: $n, i: $i\n";
-    if ($n > 0 && $grid[$n-1][$i] ne ".") {
-        $grid[$n-1][$i] = $groupnum;
-        backtrace($n-1, $i);
-    }
-
-    my $pos = $i;
-    while ($grid[$n][++$pos]) {
-        if ($grid[$n][$i] ne ".") {
-            $grid[$n][$i] = $groupnum;
-        }
-
-    }
-
-    while ($i > 0 && $grid[$n][--$i] ne ".") {
-        $grid[$n][$i] = $groupnum;
-        if ($n > 0 && $grid[$n-1][$i] ne ".") {
-            $grid[$n-1][$i] = $groupnum;
-            backtrace($n-1, $i);
-        }
-    }
-
-}
-
-# print disk row given a string representation of a binary number
+# print disk row given a string representation of a binary number, returns total squares
 sub printRow {
     my $binStr = shift;
     my @a = split //, $binStr;
@@ -248,28 +121,13 @@ sub toBinary {
 
     foreach(@arr) {
         $str = "";
-        #print "------\n";
         for my $i (0 .. 7) {
             $str .= ($_ % 2);
             $_ /= 2;
         }
-        #print "s: $str\n";
         $bin .= reverse $str;
     }
-    #print "bin: $bin\n";
     return $bin;
-}
-
-# turn a list of integers into output of their hex representation.
-sub toHexOutput {
-    my @arr = @_;
-    my $str = "";
-    foreach (@arr) {
-        $str .= sprintf("%02x", $_);
-    }
-    #print "length hex str: " . (length $str) . "\n";
-    #print "hex str: $str\n";
-    return $str;
 }
 
 # take array of integers and compress into XOR value of each 16 element segment
@@ -354,14 +212,6 @@ sub reverseSection {
         $arr[$indexes[$i]] = $arr[$indexes[$#indexes-$i]];
         $arr[$indexes[$#indexes-$i]] = $tmp;
     }
-    return @arr;
-}
-
-# turn a string with a comma seperated list of ints into an array.
-sub linesToArr {
-    my $line = shift;
-    $line =~ s/\s+$//g;
-    my @arr = split /,/, $line;
     return @arr;
 }
 
