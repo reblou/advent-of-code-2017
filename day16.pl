@@ -29,27 +29,25 @@ if ($ARGV[0] == 1) {
     my $dance = $lines[0];
     $dance =~ s/\s+$//g;
     my @end = parseline($dance, @line);
-    print "----\n";
-    my @is = simplifyDance(\@line, \@end);
-    my $n = findLoop(@is);
+    my $n = findLoop($dance);
     my $remainder = 1000000000 % $n;
     print "remainder: $remainder\n";
     for my $i (1 .. $remainder) {
-        print "loop i: $i\n";
-        @line = simpleDance(\@is, @line);
+        @line = parseline($dance, @line);
     }
 }
 
 print "final line: @line\n";
 
+# find the number of dances done before it loops
 sub findLoop {
-    my @indexes = @_;
+    my $dance = shift;
     my @line = split //, "abcdefghijklmnop";
-    @line = simpleDance(\@indexes, @line);
+    @line = parseline($dance, @line);
     my $n = 1;
 
     while ((join "", @line) ne "abcdefghijklmnop") {
-        @line = simpleDance(\@indexes, @line);
+        @line = parseline($dance, @line);
         $n++;
     }
     print "n times to loop: $n\n";
@@ -57,38 +55,10 @@ sub findLoop {
 
 }
 
-sub simpleDance {
-    my ($indexes, @line) = @_;
-    my @newline;
-    my $i = 0;
-
-    foreach (@line) {
-        $newline[${$indexes}[$i++]] = $_;
-    }
-    print "new line: @newline\n";
-    return @newline;
-}
-
-sub simplifyDance {
-    my ($start, $end) = @_;
-    my @start = @{$start};
-    my @end = @{$end};
-    my @indexes;
-
-    foreach my $s (@start) {
-        my $x = (first { $end[$_] eq $s } 0..$#end);
-        push @indexes, $x;
-        print "index of $s is: $x\n";
-    }
-    print "indexes: @indexes\n";
-    return @indexes;
-}
-
+# perform dance moves on the list
 sub parseline {
     my ($dance, @line) = @_;
     my @inst = split /,/, $dance;
-    print "l: @line\n";
-    print "i: @inst\n";
     my $i = 0;
 
     my $X;
@@ -98,34 +68,31 @@ sub parseline {
     while ($i < @inst) {
         if ($inst[$i] =~ /s/) {
             ($X = $inst[$i]) =~ s/^s//g;
-            print "s $X\n";
             spin($X, \@line);
         } elsif ($inst[$i] =~ /x/) {
             ($A = $inst[$i]) =~ s/^x|\/[0-9]+//g;
             ($B = $inst[$i]) =~ s/^x[0-9]+\///g;
-
-            print "x, A: $A, B: $B\n";
 
             exchange($A, $B, \@line);
         } elsif ($inst[$i] =~ /p/) {
             ($A = $inst[$i]) =~ s/^p|\/[a-z]+//g;
             ($B = $inst[$i]) =~ s/^p[a-z]\///g;
 
-            print "p, A: $A, B: $B\n";
             partner($A, $B, \@line);
         }
         $i++;
-        print "line: @line\n";
     }
     return @line;
 }
 
+# move x elements from the end to the front of an array
 sub spin {
     my ($x, $line) = @_;
     my @start = splice @{$line}, 0, @{$line}-$x;
     push @{$line}, @start;
 }
 
+# swap elements of a list at a and b indexes
 sub exchange {
     my ($a, $b, $line) = @_;
     my $tmp = ${$line}[$a];
@@ -133,6 +100,7 @@ sub exchange {
     ${$line}[$b] = $tmp;
 }
 
+# swap elements a and b in the array
 sub partner {
     my ($a, $b, $line) = @_;
     my $i = 0;
