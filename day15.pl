@@ -8,9 +8,6 @@ unless (@ARGV) {
     exit;
 }
 
-open(my $file, "<", "day15input");
-my @lines = <$file>;
-
 my $factorA = 16807;
 my $factorB = 48271;
 my $divideBy = 2147483647;
