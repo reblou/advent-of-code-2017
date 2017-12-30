@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Term::ProgressBar;
+use List::Util qw(first);
 
 unless (@ARGV) {
     print "no arguments\n";
@@ -12,24 +12,76 @@ unless (@ARGV) {
 
 open(my $file, "<", "day16input");
 my @lines = <$file>;
+my @line;
 
 if ($ARGV[0] == 1) {
     my $str = "abcdefghijklmnop";
-    my @line = split //, $str;
+    @line = split //, $str;
     print "line: @line\n";
 
     my $dance = $lines[0];
     $dance =~ s/\s+$//g;
-    parseline($dance, @line);
+    @line = parseline($dance, @line);
+
 } elsif ($ARGV[0] == 2) {
     my $str = "abcdefghijklmnop";
-    my @line = split //, $str;
+    @line = split //, $str;
     my $dance = $lines[0];
     $dance =~ s/\s+$//g;
-    foreach (1 .. 1000000000) {
-        @line = parseline($dance, @line);
+    my @end = parseline($dance, @line);
+    print "----\n";
+    my @is = simplifyDance(\@line, \@end);
+    my $n = findLoop(@is);
+    my $remainder = 1000000000 % $n;
+    print "remainder: $remainder\n";
+    for my $i (1 .. $remainder) {
+        print "loop i: $i\n";
+        @line = simpleDance(\@is, @line);
     }
-    print "final line: @line\n";
+}
+
+print "final line: @line\n";
+
+sub findLoop {
+    my @indexes = @_;
+    my @line = split //, "abcdefghijklmnop";
+    @line = simpleDance(\@indexes, @line);
+    my $n = 1;
+
+    while ((join "", @line) ne "abcdefghijklmnop") {
+        @line = simpleDance(\@indexes, @line);
+        $n++;
+    }
+    print "n times to loop: $n\n";
+    return $n;
+
+}
+
+sub simpleDance {
+    my ($indexes, @line) = @_;
+    my @newline;
+    my $i = 0;
+
+    foreach (@line) {
+        $newline[${$indexes}[$i++]] = $_;
+    }
+    print "new line: @newline\n";
+    return @newline;
+}
+
+sub simplifyDance {
+    my ($start, $end) = @_;
+    my @start = @{$start};
+    my @end = @{$end};
+    my @indexes;
+
+    foreach my $s (@start) {
+        my $x = (first { $end[$_] eq $s } 0..$#end);
+        push @indexes, $x;
+        print "index of $s is: $x\n";
+    }
+    print "indexes: @indexes\n";
+    return @indexes;
 }
 
 sub parseline {
