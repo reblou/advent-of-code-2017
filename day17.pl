@@ -23,40 +23,21 @@ if ($ARGV[0] == 1) {
     my $ans = $circularBuffer[$pos+1];
     print "ans: $ans\n";
 } elsif ($ARGV[0] == 2) {
-    my @circularBuffer = (0, 1);
     my $pos = 0;
-    my $val = 2;
-    my $zIndex = 0;
     my $nextToZ = 1;
-    my $length = 2;
 
-    for my $i (1 .. 50000000) {
-        print "i: $i\n";
-        $pos = nextIndex($pos, $length);
-        if ($pos == $zIndex+1) {
-            $nextToZ = $val;
-        } elsif ($pos <= $zIndex) {
-            $zIndex++;
+    for my $i (1 .. 50_000_000) {
+        $pos = ($pos+$steps) % $i;
+        unless ($pos++) {
+            $nextToZ = $i;
+            print "nextToZ: $nextToZ\n";
         }
-        $val++;
-        $length++;
     }
-
-    #my $ans = $circularBuffer[$pos+1];
-    my $ans = $nextToZ;
-    print "ans: $ans\n";
 }
 
+# get new index after cycling $steps through an array of given length starting at index ci
 sub nextIndex {
     my ($ci, $arrayLength) = @_;
-    my $i = $steps;
 
-    while ($i > 0) {
-        if (++$ci > $arrayLength-1) {
-            $ci = 0;
-        }
-        $i--;
-    }
-
-    return $ci;
+    return ($ci + $steps) % $arrayLength;
 }
